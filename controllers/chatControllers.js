@@ -77,12 +77,12 @@ const sendMessage = async (req, res) => {
       id: data.id,
       sender_id,
       receiver_id,
-      message, // Clair, PAS encryptedMessage
+      message,
       is_admin: true,
       created_at: data.created_at,
     };
 
-    console.log('Sending via WebSocket:', messageData); // Log pour débogage
+    console.log('Sending via WebSocket:', messageData); 
     const io = req.app.get('io');
     io.to(receiver_id).emit('receiveMessage', messageData);
     io.to(sender_id).emit('receiveMessage', messageData);

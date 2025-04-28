@@ -1,6 +1,6 @@
 const supabase = require('../config/supabase');
 
-// Fonction pour générer une clé de produit aléatoire (ex. "ABC123-XYZ789")
+/* Fonction pour générer une clé de produit aléatoire (ex. "ABC123-XYZ789")
 const generateRandomProductKey = () => {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let key = '';
@@ -13,14 +13,20 @@ const generateRandomProductKey = () => {
   }
   return key; // Exemple : "K9P2M7-X4N8J3"
 };
-
-// Ajouter un product_key aléatoire par un admin
+*/
+// Ajouter un product_key par un admin
+// Ajouter un product_key manuellement depuis req.body par un admin
 const addProductKey = async (req, res) => {
   const admin_id = req.user.id; // Récupéré du JWT via middleware
-  const product_key = generateRandomProductKey(); // Génération de la clé aléatoire
+  const { product_key } = req.body; // Récupération de la clé depuis req.body
+
+  // Vérifier si product_key est fourni dans la requête
+  if (!product_key) {
+    return res.status(400).json({ error: 'Product key is required.' });
+  }
 
   try {
-    // Vérifier si la clé existe déjà (peu probable, mais on vérifie quand même)
+    // Vérifier si la clé existe déjà
     const { data: existingProduct, error: checkError } = await supabase
       .from('products')
       .select('product_key')
@@ -28,14 +34,14 @@ const addProductKey = async (req, res) => {
       .single();
 
     if (existingProduct) {
-      return res.status(400).json({ error: 'Product key already exists (unlikely collision).' });
+      return res.status(400).json({ error: 'Product key already exists.' });
     }
 
     if (checkError && checkError.code !== 'PGRST116') {
       return res.status(500).json({ error: 'Database error.', details: checkError });
     }
 
-    // Insérer la nouvelle clé aléatoire
+    // Insérer la nouvelle clé fournie manuellement
     const { data: product, error: insertError } = await supabase
       .from('products')
       .insert([{ product_key, admin_id, used: false, user_id: null }])
